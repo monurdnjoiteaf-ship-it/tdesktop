@@ -383,6 +383,7 @@ private:
 	void send();
 	void send(Api::SendOptions options);
 	void sendVoice(const Controls::VoiceToSend &data);
+	void sendAudioFileAsVoice(const QString &path);
 	void edit(
 		not_null<HistoryItem*> item,
 		Api::SendOptions options,
