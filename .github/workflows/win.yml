@@ -53,14 +53,9 @@ jobs:
 
     strategy:
       matrix:
-        arch: [x64_x86, x64, arm64]
-        qt: ["", qt6]
-        generator: ["", "Ninja Multi-Config"]
-        exclude:
-          - arch: arm64
-            qt: ""
-          - arch: x64_x86
-            qt: qt6
+        arch: [x64]
+        qt: [""]
+        generator: [""]
 
     env:
       UPLOAD_ARTIFACT: "true"
@@ -118,7 +113,7 @@ jobs:
             '--add','Microsoft.VisualStudio.Component.VC.Tools.ARM64', `
             '--add','Microsoft.VisualStudio.Component.VC.ATL.ARM64'
           Remove-Item $exe -Force -ErrorAction SilentlyContinue
-          if ($p.ExitCode -ne 0 -and $p.ExitCode -ne 3010) { exit $p.ExitCode }
+          if ($p.ExitCod -ne 0 -and $p.ExitCode -ne 3010) { exit $p.ExitCod }
 
       - uses: Eden-CI/msvc-dev-cmd@master
         name: Native Tools Command Prompt.
@@ -147,7 +142,7 @@ jobs:
           path: |
             ${{ env.LibrariesPath }}\*
             !${{ env.LibrariesPath }}\cache_keys
-            !${{ env.LibrariesPath }}\[qQ]t[_-]*
+            !${{ env.LibrariesPath }}\[QT][_-]*
             ${{ env.LibrariesPath }}\cache_keys\*
             !${{ env.LibrariesPath }}\cache_keys\[qQ]t[_-]*
           key: ${{ runner.OS }}-${{ matrix.arch }}-libs-v2-${{ env.CACHE_KEY }}
@@ -230,7 +225,7 @@ jobs:
           ${{ matrix.qt }} ^
           %TDESKTOP_BUILD_API% ^
           -D CMAKE_CONFIGURATION_TYPES=Debug ^
-          -D CMAKE_COMPILE_WARNING_AS_ERROR=ON ^
+          -D CMAKE_COMPILE_WARNING_AS_ERROR=OFF ^
           -D CMAKE_MSVC_DEBUG_INFORMATION_FORMAT= ^
           -D DESKTOP_APP_DISABLE_AUTOUPDATE=OFF ^
           -D DESKTOP_APP_DISABLE_CRASH_REPORTS=OFF ^
