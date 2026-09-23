@@ -86,6 +86,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "core/mime_type.h"
 #include "main/main_session.h"
 #include "main/main_session_settings.h"
+#include "media/audio/media_audio_edit.h"
 #include "media/player/media_player_instance.h"
 #include "menu/menu_timecode_action.h"
 #include "data/components/ephemeral_messages.h"
@@ -131,6 +132,8 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "styles/style_layers.h"
 
 #include <limits>
+#include <QtCore/QFile>
+#include <QtCore/QFileInfo>
 #include <QtCore/QMimeData>
 
 namespace HistoryView {
@@ -145,6 +148,20 @@ enum class SendPermission {
 constexpr auto kShowMembersDropdownTimeoutMs = 300;
 constexpr auto kScrollToVoiceAfterScrolledMs = crl::time(1000);
 constexpr auto kPsaAboutPrefix = "cloud_lng_about_psa_";
+
+[[nodiscard]] bool IsAudioFile(const QString &path) {
+	static const auto extensions = base::flat_set<QString>{
+		u"aac"_q,
+		u"flac"_q,
+		u"m4a"_q,
+		u"mp3"_q,
+		u"oga"_q,
+		u"ogg"_q,
+		u"opus"_q,
+		u"wav"_q,
+	};
+	return extensions.contains(QFileInfo(path).suffix().toLower());
+}
 
 [[nodiscard]] bool CanSendResolved(
 		not_null<PeerData*> peer,
@@ -1982,6 +1999,11 @@ void ChatWidget::chooseAttach(
 				uploadFile(result.remoteContent, SendMediaType::File);
 			}
 		} else {
+			if (result.paths.size() == 1
+				&& IsAudioFile(result.paths.front())) {
+				sendAudioFileAsVoice(result.paths.front());
+				return;
+			}
 			const auto premium = controller()->session().user()->isPremium();
 			auto list = Storage::PrepareMediaList(
 				result.paths,
@@ -2358,6 +2380,33 @@ void ChatWidget::sendVoice(const ComposeControls::VoiceToSend &data) {
 	_composeControls->cancelReplyMessage();
 	_composeControls->clearListenState();
 	finishSending();
+}
+
+void ChatWidget::sendAudioFileAsVoice(const QString &path) {
+	if (const auto error = Data::RestrictionError(
+			_peer,
+			ChatRestriction::SendVoiceMessages)) {
+		Data::ShowSendErrorToast(controller(), _peer, error);
+		return;
+	}
+	auto file = QFile(path);
+	if (!file.open(QIODevice::ReadOnly)) {
+		return;
+	}
+	const auto content = file.readAll();
+	crl::async([=] {
+		auto converted = Media::ConvertAudioToVoice(content);
+		crl::on_main(this, [=, converted = std::move(converted)]() mutable {
+			if (converted.content.isEmpty()) {
+				return;
+			}
+			sendVoice({
+				.bytes = std::move(converted.content),
+				.waveform = std::move(converted.waveform),
+				.duration = converted.duration,
+			});
+		});
+	});
 }
 
 void ChatWidget::send(Api::SendOptions options) {
