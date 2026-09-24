@@ -67,6 +67,22 @@ jobs:
         shell: cmd
 
     steps:
+      - name: Free runner disk space.
+        shell: pwsh
+        run: |
+          $paths = @(
+            'C:\Android',
+            'C:\ghcup',
+            'C:\hostedtoolcache\windows\CodeQL',
+            'C:\Program Files\Android'
+          )
+          foreach ($path in $paths) {
+            if (Test-Path $path) {
+              Remove-Item $path -Recurse -Force -ErrorAction SilentlyContinue
+            }
+          }
+          Get-PSDrive C
+
       - name: Prepare directories.
         run: |
           mkdir %userprofile%\TBuild\Libraries
