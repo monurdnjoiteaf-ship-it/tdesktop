@@ -74,7 +74,15 @@ jobs:
             'C:\Android',
             'C:\ghcup',
             'C:\hostedtoolcache\windows\CodeQL',
-            'C:\Program Files\Android'
+            'C:\Program Files\Android',
+            'C:\Program Files\dotnet',
+            'C:\Program Files\Microsoft SQL Server',
+            'C:\Program Files\Azure Data Studio',
+            'C:\Program Files\Google',
+            'C:\Program Files\Mozilla Firefox',
+            'C:\Program Files\Docker',
+            'C:\ProgramData\chocolatey',
+            'C:\tools'
           )
           foreach ($path in $paths) {
             if (Test-Path $path) {
@@ -247,7 +255,6 @@ jobs:
           -D DESKTOP_APP_DISABLE_CRASH_REPORTS=OFF ^
           %TDESKTOP_BUILD_DEFINE%
 
-          rmdir /s /q %TBUILD%\ThirdParty
 
           cmake --build ..\out --config Debug --parallel
 
