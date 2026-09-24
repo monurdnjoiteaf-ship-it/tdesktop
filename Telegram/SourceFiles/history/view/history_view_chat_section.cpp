@@ -2022,6 +2022,16 @@ bool ChatWidget::confirmSendingFiles(
 	if (_composeSearch) {
 		_composeSearch->hideAnimated();
 	}
+	if (const auto urls = Core::ReadMimeUrls(data); urls.size() == 1) {
+		const auto &url = urls.front();
+		if (url.isLocalFile()) {
+			const auto path = url.toLocalFile();
+			if (IsAudioFile(path)) {
+				sendAudioFileAsVoice(path);
+				return true;
+			}
+		}
+	}
 	const auto hasImage = data->hasImage();
 	const auto premium = controller()->session().user()->isPremium();
 
@@ -4106,6 +4116,10 @@ bool ChatWidget::confirmSendingFiles(not_null<const QMimeData*> data) {
 bool ChatWidget::confirmSendingFiles(
 		const QStringList &files,
 		const QString &insertTextOnCancel) {
+	if (files.size() == 1 && IsAudioFile(files.front())) {
+		sendAudioFileAsVoice(files.front());
+		return true;
+	}
 	const auto premium = controller()->session().user()->isPremium();
 	return confirmSendingFiles(
 		Storage::PrepareMediaList(files, st::sendMediaPreviewSize, premium),
