@@ -2395,7 +2395,7 @@ void ChatWidget::sendAudioFileAsVoice(const QString &path) {
 	}
 	const auto content = file.readAll();
 	crl::async([=] {
-		auto converted = Media::ConvertAudioToVoice(content);
+		auto converted = ::Media::ConvertAudioToVoice(content);
 		crl::on_main(this, [=, converted = std::move(converted)]() mutable {
 			if (converted.content.isEmpty()) {
 				return;
