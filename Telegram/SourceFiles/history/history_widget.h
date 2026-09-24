@@ -467,6 +467,7 @@ private:
 		std::shared_ptr<const Iv::RichPage> page,
 		Api::SendOptions options);
 	void sendVoice(const VoiceToSend &data);
+	void sendAudioFileAsVoice(const QString &path);
 	void sendWithTextOverride(
 		TextWithEntities text,
 		Api::SendOptions options,
