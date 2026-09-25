@@ -1,0 +1,49 @@
+name: Build Telegram Auto Voice Reply Linux
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - feature/auto-voice-reply-assistant
+    paths:
+      - TelegramAutoVoiceReply/headless.py
+      - TelegramAutoVoiceReply/BAOTA-LINUX.md
+      - TelegramAutoVoiceReply/requirements.txt
+      - .github/workflows/auto-voice-reply-linux.yml
+
+jobs:
+  linux-x64:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: python -m pip install -r TelegramAutoVoiceReply/requirements.txt
+
+      - name: Build Linux executable
+        run: >-
+          pyinstaller
+          --noconfirm
+          --clean
+          --onefile
+          --name Telegram-Auto-Voice-Reply-Linux-x64
+          --collect-all imageio_ffmpeg
+          TelegramAutoVoiceReply/headless.py
+
+      - name: Package
+        run: |
+          mkdir package
+          cp dist/Telegram-Auto-Voice-Reply-Linux-x64 package/
+          cp TelegramAutoVoiceReply/BAOTA-LINUX.md package/
+          cd package
+          zip -9 ../Telegram-Auto-Voice-Reply-Linux-x64.zip *
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Telegram Auto Voice Reply Linux x64
+          path: Telegram-Auto-Voice-Reply-Linux-x64.zip
+          retention-days: 7
