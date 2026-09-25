@@ -1559,10 +1559,13 @@ public:
 		peaks.reserve(Media::Player::kWaveformSamplesCount);
 
 		auto fmt = format();
+		const auto bytesPerSample = (fmt == AL_FORMAT_MONO8
+			|| fmt == AL_FORMAT_STEREO8) ? 1 : 2;
 		auto peak = uint16(0);
 		auto callback = [&](uint16 sample) {
 			accumulate_max(peak, sample);
-			sumbytes += Media::Player::kWaveformSamplesCount;
+			sumbytes += Media::Player::kWaveformSamplesCount
+				* bytesPerSample;
 			if (sumbytes >= countbytes) {
 				sumbytes -= countbytes;
 				peaks.push_back(peak);
