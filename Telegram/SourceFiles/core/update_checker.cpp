@@ -1755,7 +1755,8 @@ FlatpakLoader::~FlatpakLoader() {
 } // namespace
 
 bool UpdaterDisabled() {
-	return UpdaterIsDisabled;
+	// This custom build must never be replaced by an official auto-update.
+	return true;
 }
 
 void SetUpdaterDisabledAtStartup() {
