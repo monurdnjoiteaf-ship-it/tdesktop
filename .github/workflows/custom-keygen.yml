@@ -1,0 +1,41 @@
+name: Custom KeyGen Windows x64
+on:
+  push:
+    branches: [feature/audio-voice-offline-license]
+    paths:
+      - 'custom/KeyGen/**'
+      - '.github/workflows/custom-keygen.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  keygen:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Publish KeyGen
+        shell: pwsh
+        run: dotnet publish custom/KeyGen/KeyGen.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=false -o dist/KeyGen
+      - name: Add usage instructions
+        shell: pwsh
+        run: |
+          @'
+          KeyGen 使用说明（开发预览版）
+          ===========================
+          1. 首次生成签名密钥：
+             KeyGen.exe init private.pem public.pem
+          2. 签发 30 天许可证：
+             KeyGen.exe issue private.pem MACHINE_ID 30
+          3. 签发永久许可证：
+             KeyGen.exe issue private.pem MACHINE_ID permanent
+          可用期限：1、7、30、365 天或 permanent。
+          注意：private.pem 只在授权管理者电脑上保存，禁止公开或上传。
+          目前仅完成密钥生成器；Telegram 客户端验证功能尚未集成。
+          '@ | Set-Content -Path dist/KeyGen/使用说明.txt -Encoding UTF8
+      - uses: actions/upload-artifact@v4
+        with:
+          name: KeyGen-win-x64-preview
+          path: dist/KeyGen/
